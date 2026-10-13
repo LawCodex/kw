@@ -80,12 +80,13 @@ def convert(wikitext):
             items.append(('sec', h, RANK[sm.group(1)]) if sm else ('wsec', h, len(m.group(1))))
             continue
         prefix = ''
-        if raw[0] == '#':
+        lead = re.match(r'^[#*:;]*', raw).group(0)
+        if lead == '#':
             counter += 1
             prefix = f'{counter}. '
-        elif raw[0] == '*':
+        elif lead and lead[-1] in '#*':
             prefix = '- '
-        if raw[0] != '#':
+        if not lead.startswith('#'):
             counter = 0
         raw = raw.lstrip(':;*# ').strip() if raw[0] in ':;*#' else raw
         s = wiki_inline(raw)
