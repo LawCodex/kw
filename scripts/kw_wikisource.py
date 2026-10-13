@@ -67,6 +67,7 @@ def convert(wikitext):
     t = re.sub(r'\[\[(?:تصنيف|Category):[^\]]*\]\]', '', t)
     lines = [l.rstrip() for l in t.split('\n')]
     items = []  # (kind, text)
+    counter = 0
     for l in lines:
         raw = l.strip()
         if not raw or raw == '----':
@@ -78,7 +79,15 @@ def convert(wikitext):
             sm = SEC.match(h)
             items.append(('sec', h, RANK[sm.group(1)]) if sm else ('wsec', h, len(m.group(1))))
             continue
-        raw = raw.lstrip(':*# ').strip() if raw[0] in ':*#' else raw
+        prefix = ''
+        if raw[0] == '#':
+            counter += 1
+            prefix = f'{counter}. '
+        elif raw[0] == '*':
+            prefix = '- '
+        if raw[0] != '#':
+            counter = 0
+        raw = raw.lstrip(':;*# ').strip() if raw[0] in ':;*#' else raw
         s = wiki_inline(raw)
         if not s:
             items.append(('blank', ''))
@@ -92,7 +101,7 @@ def convert(wikitext):
         if SEC.match(s) and len(s) < 80:
             items.append(('sec', s.replace('**', '').strip(), RANK[SEC.match(s).group(1)]))
             continue
-        items.append(('p', s))
+        items.append(('p', prefix + s))
     # merge a section heading with a short title line that follows it
     merged, i = [], 0
     while i < len(items):
